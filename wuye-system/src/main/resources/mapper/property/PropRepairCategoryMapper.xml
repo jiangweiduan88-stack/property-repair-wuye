@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wuye.system.mapper.PropRepairCategoryMapper">
+    <!-- 映射报修分类实体，并按显示顺序维护可用分类数据。 -->
+    <resultMap id="PropRepairCategoryResult" type="PropRepairCategory">
+        <id property="categoryId" column="category_id"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="status" column="status"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+    <sql id="selectCategoryVo">select category_id, category_name, order_num, status, create_by, create_time, update_by, update_time, remark from prop_repair_category</sql>
+    <select id="selectCategoryList" parameterType="PropRepairCategory" resultMap="PropRepairCategoryResult"><include refid="selectCategoryVo"/><where><if test="categoryName != null and categoryName != ''">and category_name like concat('%', #{categoryName}, '%')</if><if test="status != null and status != ''">and status = #{status}</if></where> order by order_num asc, category_id desc</select>
+    <select id="selectCategoryById" parameterType="Long" resultMap="PropRepairCategoryResult"><include refid="selectCategoryVo"/> where category_id = #{categoryId}</select>
+    <insert id="insertCategory" parameterType="PropRepairCategory" useGeneratedKeys="true" keyProperty="categoryId">insert into prop_repair_category(category_name, order_num, status, create_by, create_time, remark) values(#{categoryName}, #{orderNum}, #{status}, #{createBy}, sysdate(), #{remark})</insert>
+    <update id="updateCategory" parameterType="PropRepairCategory">update prop_repair_category <set><if test="categoryName != null">category_name = #{categoryName},</if><if test="orderNum != null">order_num = #{orderNum},</if><if test="status != null">status = #{status},</if><if test="remark != null">remark = #{remark},</if>update_by = #{updateBy}, update_time = sysdate()</set> where category_id = #{categoryId}</update>
+    <delete id="deleteCategoryByIds" parameterType="Long">delete from prop_repair_category where category_id in <foreach item="id" collection="array" open="(" separator="," close=")">#{id}</foreach></delete>
+</mapper>

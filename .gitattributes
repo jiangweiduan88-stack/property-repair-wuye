@@ -1,0 +1,13 @@
+# Windows 脚本固定使用 CRLF，避免 CMD 将多行命令解析为异常内容。
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.vbs text eol=crlf
+
+# 其他源文件统一使用 LF，减少跨平台提交产生的无关差异。
+*.java text eol=lf
+*.xml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.js text eol=lf
+*.vue text eol=lf
+*.scss text eol=lf

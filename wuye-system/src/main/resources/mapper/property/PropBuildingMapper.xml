@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wuye.system.mapper.PropBuildingMapper">
+    <!-- 映射楼栋实体，并实现楼栋列表筛选及基础增删改查。 -->
+    <resultMap id="PropBuildingResult" type="PropBuilding">
+        <id property="buildingId" column="building_id"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="address" column="address"/>
+        <result property="floors" column="floors"/>
+        <result property="status" column="status"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+    <sql id="selectBuildingVo">select building_id, building_name, address, floors, status, create_by, create_time, update_by, update_time, remark from prop_building</sql>
+    <select id="selectBuildingList" parameterType="PropBuilding" resultMap="PropBuildingResult">
+        <include refid="selectBuildingVo"/>
+        <where>
+            <if test="buildingName != null and buildingName != ''">and building_name like concat('%', #{buildingName}, '%')</if>
+            <if test="status != null and status != ''">and status = #{status}</if>
+        </where>
+        order by building_id desc
+    </select>
+    <select id="selectBuildingById" parameterType="Long" resultMap="PropBuildingResult"><include refid="selectBuildingVo"/> where building_id = #{buildingId}</select>
+    <insert id="insertBuilding" parameterType="PropBuilding" useGeneratedKeys="true" keyProperty="buildingId">
+        insert into prop_building(building_name, address, floors, status, create_by, create_time, remark)
+        values(#{buildingName}, #{address}, #{floors}, #{status}, #{createBy}, sysdate(), #{remark})
+    </insert>
+    <update id="updateBuilding" parameterType="PropBuilding">
+        update prop_building
+        <set>
+            <if test="buildingName != null">building_name = #{buildingName},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="floors != null">floors = #{floors},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_by = #{updateBy}, update_time = sysdate()
+        </set>
+        where building_id = #{buildingId}
+    </update>
+    <delete id="deleteBuildingByIds" parameterType="Long">delete from prop_building where building_id in <foreach item="id" collection="array" open="(" separator="," close=")">#{id}</foreach></delete>
+</mapper>

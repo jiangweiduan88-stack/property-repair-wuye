@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wuye.system.mapper.PropRepairOrderLogMapper">
+    <resultMap id="PropRepairOrderLogResult" type="PropRepairOrderLog">
+        <id property="logId" column="log_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="action" column="action"/>
+        <result property="actionLabel" column="action_label"/>
+        <result property="operatorId" column="operator_id"/>
+        <result property="operatorName" column="operator_name"/>
+        <result property="content" column="content"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <!--
+      优先显示用户当前昵称，账号不存在时回退到日志快照中的操作人名称；
+      再按时间和主键双重倒序，确保同一秒产生的多条记录仍保持稳定顺序。
+    -->
+    <select id="selectLogsByOrderId" parameterType="Long" resultMap="PropRepairOrderLogResult">
+        select l.log_id, l.order_id, l.order_no, l.action, l.action_label, l.operator_id,
+               coalesce(nullif(u.nick_name, ''), l.operator_name) as operator_name,
+               l.content, l.create_time
+        from prop_repair_order_log l
+        left join sys_user u on u.user_id = l.operator_id and u.del_flag = '0'
+        where l.order_id = #{orderId}
+        order by l.create_time desc, l.log_id desc
+    </select>
+
+    <insert id="insertLog" parameterType="PropRepairOrderLog" useGeneratedKeys="true" keyProperty="logId">
+        insert into prop_repair_order_log(order_id, order_no, action, action_label, operator_id, operator_name, content, create_time)
+        values(#{orderId}, #{orderNo}, #{action}, #{actionLabel}, #{operatorId}, #{operatorName}, #{content}, sysdate())
+    </insert>
+</mapper>

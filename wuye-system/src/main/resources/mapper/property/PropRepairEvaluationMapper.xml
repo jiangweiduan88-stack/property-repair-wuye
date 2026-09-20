@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wuye.system.mapper.PropRepairEvaluationMapper">
+    <resultMap id="PropRepairEvaluationResult" type="PropRepairEvaluation">
+        <id property="evaluationId" column="evaluation_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="repairUserId" column="repair_user_id"/>
+        <result property="score" column="score"/>
+        <result property="content" column="content"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+    <sql id="selectEvaluationVo">select evaluation_id, order_id, order_no, owner_id, repair_user_id, score, content, create_by, create_time, update_by, update_time, remark from prop_repair_evaluation</sql>
+    <!-- ownerId 和 repairUserId 由服务层按当前账号强制写入，用于在数据库查询阶段完成评价数据隔离。 -->
+    <select id="selectEvaluationList" parameterType="PropRepairEvaluation" resultMap="PropRepairEvaluationResult"><include refid="selectEvaluationVo"/><where><if test="orderNo != null and orderNo != ''">and order_no like concat('%', #{orderNo}, '%')</if><if test="ownerId != null">and owner_id = #{ownerId}</if><if test="repairUserId != null">and repair_user_id = #{repairUserId}</if></where> order by evaluation_id desc</select>
+    <select id="selectEvaluationById" parameterType="Long" resultMap="PropRepairEvaluationResult"><include refid="selectEvaluationVo"/> where evaluation_id = #{evaluationId}</select>
+    <select id="selectEvaluationByOrderId" parameterType="Long" resultMap="PropRepairEvaluationResult"><include refid="selectEvaluationVo"/> where order_id = #{orderId} limit 1</select>
+    <insert id="insertEvaluation" parameterType="PropRepairEvaluation" useGeneratedKeys="true" keyProperty="evaluationId">insert into prop_repair_evaluation(order_id, order_no, owner_id, repair_user_id, score, content, create_by, create_time, remark) values(#{orderId}, #{orderNo}, #{ownerId}, #{repairUserId}, #{score}, #{content}, #{createBy}, sysdate(), #{remark})</insert>
+    <update id="updateEvaluation" parameterType="PropRepairEvaluation">update prop_repair_evaluation <set><if test="score != null">score = #{score},</if><if test="content != null">content = #{content},</if><if test="remark != null">remark = #{remark},</if>update_by = #{updateBy}, update_time = sysdate()</set> where evaluation_id = #{evaluationId}</update>
+    <delete id="deleteEvaluationByIds" parameterType="Long">delete from prop_repair_evaluation where evaluation_id in <foreach item="id" collection="array" open="(" separator="," close=")">#{id}</foreach></delete>
+</mapper>

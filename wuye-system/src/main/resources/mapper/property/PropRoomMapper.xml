@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wuye.system.mapper.PropRoomMapper">
+    <resultMap id="PropRoomResult" type="PropRoom">
+        <id property="roomId" column="room_id"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="unitNo" column="unit_no"/>
+        <result property="roomNo" column="room_no"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="ownerNickName" column="owner_nick_name"/>
+        <result property="loginAccount" column="login_account"/>
+        <result property="ownerPhone" column="owner_phone"/>
+        <result property="status" column="status"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+    <!--
+      房屋记录保存稳定的业主关系，展示时再关联用户昵称、登录账号和电话。
+      这样账号资料变更后房屋页面可立即显示最新信息，无需同步冗余字段。
+    -->
+    <sql id="selectRoomVo">select r.room_id, r.building_id, b.building_name, r.unit_no, r.room_no, r.owner_id, r.owner_name, u.nick_name owner_nick_name, u.user_name login_account, u.phonenumber owner_phone, r.status, r.create_by, r.create_time, r.update_by, r.update_time, r.remark from prop_room r left join prop_building b on r.building_id = b.building_id left join sys_user u on r.owner_id = u.user_id</sql>
+    <select id="selectRoomList" parameterType="PropRoom" resultMap="PropRoomResult">
+        <include refid="selectRoomVo"/>
+        <where>
+            <if test="buildingId != null">and r.building_id = #{buildingId}</if>
+            <if test="roomNo != null and roomNo != ''">and r.room_no like concat('%', #{roomNo}, '%')</if>
+            <if test="ownerId != null">and r.owner_id = #{ownerId}</if>
+            <if test="status != null and status != ''">and r.status = #{status}</if>
+        </where>
+        order by r.room_id desc
+    </select>
+    <select id="selectRoomById" parameterType="Long" resultMap="PropRoomResult"><include refid="selectRoomVo"/> where r.room_id = #{roomId}</select>
+    <insert id="insertRoom" parameterType="PropRoom" useGeneratedKeys="true" keyProperty="roomId">insert into prop_room(building_id, unit_no, room_no, owner_id, owner_name, status, create_by, create_time, remark) values(#{buildingId}, #{unitNo}, #{roomNo}, #{ownerId}, #{ownerName}, #{status}, #{createBy}, sysdate(), #{remark})</insert>
+    <update id="updateRoom" parameterType="PropRoom">update prop_room <set><if test="buildingId != null">building_id = #{buildingId},</if><if test="unitNo != null">unit_no = #{unitNo},</if><if test="roomNo != null">room_no = #{roomNo},</if><if test="ownerId != null">owner_id = #{ownerId},</if><if test="ownerName != null">owner_name = #{ownerName},</if><if test="status != null">status = #{status},</if><if test="remark != null">remark = #{remark},</if>update_by = #{updateBy}, update_time = sysdate()</set> where room_id = #{roomId}</update>
+    <delete id="deleteRoomByIds" parameterType="Long">delete from prop_room where room_id in <foreach item="id" collection="array" open="(" separator="," close=")">#{id}</foreach></delete>
+</mapper>
